@@ -55,6 +55,10 @@
 
     --chart-5: 27 87% 67%;
 
+    --foreground-rgb: 15, 23, 42;
+    --background-start-rgb: 204, 251, 241;
+    --background-end-rgb: 186, 230, 253;
+
     --radius: 0.5rem
   }
   .dark {
@@ -117,5 +121,11 @@
   }
   body {
     @apply bg-background text-foreground;
+    color: rgb(var(--foreground-rgb));
+    background: linear-gradient(
+      to bottom right,
+      transparent,
+      rgb(var(--background-end-rgb))
+    ) rgb(var(--background-start-rgb));
   }
 }

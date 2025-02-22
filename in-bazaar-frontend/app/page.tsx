@@ -1,6 +1,6 @@
 "use client";
 import Carousel from "@/components/ui/carousel";
-export default function CarouselDemo() {
+export default function Home() {
   const slideData = [
     {
       title: "Top retailers from around you",
