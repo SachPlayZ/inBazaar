@@ -38,4 +38,18 @@ export class CategoryService {
       },
     });
   }
+
+  // Add this new method
+  async getCategoryBySlug(slug: string) {
+    return await this.prisma.category.findUnique({
+      where: { slug },
+      include: {
+        products: {
+          include: {
+            seller: true,
+          },
+        },
+      },
+    });
+  }
 }
