@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 const categories = [
-  { name: "Fashion", emoji: "🎀" },
-  { name: "Groceries", emoji: "🛒" },
-  { name: "Electronics", emoji: "💻" },
-  { name: "Toys", emoji: "🧸" },
+  { name: "Fashion", emoji: "🎀", hyperlink: "category/fashion" },
+  { name: "Groceries", emoji: "🛒", hyperlink: "category/groceries" },
+  { name: "Electronics", emoji: "💻", hyperlink: "category/electronics" },
+  { name: "Toys", emoji: "🧸", hyperlink: "category/toys" },
 ];
 
 export function Navbar() {
@@ -48,7 +48,7 @@ export function Navbar() {
                   {categories.map((category) => (
                     <motion.a
                       key={category.name}
-                      href={`#${category.name.toLowerCase()}`}
+                      href={`${category.name.toLowerCase()}`}
                       className="text-teal-700 hover:text-teal-500 transition-colors duration-200"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
@@ -93,6 +93,9 @@ export function Navbar() {
               variant="ghost"
               size="icon"
               className="text-teal-600 hover:text-teal-400"
+              onClick={() => {
+                router.push("/cart");
+              }}
             >
               <ShoppingCart className="h-5 w-5" />
             </Button>
