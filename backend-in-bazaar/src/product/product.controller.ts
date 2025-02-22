@@ -36,7 +36,6 @@ export class ProductController {
   // GET /product/search?name=someName
   @Get('/search/:name')
   async searchProduct(@Param('name') name: string) {
-    console.log('Here1');
     return await this.productService.findProductByName(name);
   }
 }

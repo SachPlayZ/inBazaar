@@ -6,7 +6,7 @@ import { Search, ShoppingCart, Menu, LogIn } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-
+import Link from "next/link";
 const categories = [
   { name: "Fashion", emoji: "🎀" },
   { name: "Groceries", emoji: "🛒" },
@@ -31,7 +31,7 @@ export function Navbar() {
             whileHover={{ scale: 1.05 }}
             className="text-2xl font-bold text-teal-600 flex-shrink-0"
           >
-            inBazaar
+            <Link href="/">inBazaar</Link>
           </motion.div>
 
           {/* Middle Section - Navigation */}

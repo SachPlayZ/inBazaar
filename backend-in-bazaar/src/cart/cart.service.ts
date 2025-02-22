@@ -39,11 +39,7 @@ export class CartService {
   }
 
   // Adds a product to the cart for a given user (by username)
-  async addProductToCart(
-    username: string,
-    productId: string,
-    quantity: number,
-  ) {
+  async addProductToCart(username: string, productId: string, amount: number) {
     try {
       // Find the cart for the user by username
       let cart = await this.prisma.cart.findFirst({
@@ -77,7 +73,7 @@ export class CartService {
       if (!product) {
         throw new Error('Product not found');
       }
-      const additionalCost = product.price * quantity;
+      const additionalCost = product.price * amount;
 
       // Check if the product already exists in the cart
       const existingCartItem = cart.cartItems.find(
@@ -85,10 +81,10 @@ export class CartService {
       );
 
       if (existingCartItem) {
-        // Update the quantity of the existing cart item
+        // Update the amount of the existing cart item
         const updatedCartItem = await this.prisma.cartItem.update({
           where: { id: existingCartItem.id },
-          data: { quantity: existingCartItem.quantity + quantity },
+          data: { amount: existingCartItem.amount + amount },
         });
         // Update the cart's totalPrice
         await this.prisma.cart.update({
@@ -101,7 +97,7 @@ export class CartService {
         const newCartItem = await this.prisma.cartItem.create({
           data: {
             product: { connect: { id: productId } },
-            quantity,
+            amount,
             cart: { connect: { id: cart.id } },
           },
         });
@@ -150,14 +146,14 @@ export class CartService {
       // Calculate new totalPrice: subtract product price once.
       const updatedTotalPrice = cart.totalPrice - product.price;
 
-      if (cartItem.quantity > 1) {
-        // Decrement quantity by 1.
+      if (cartItem.amount > 1) {
+        // Decrement amount by 1.
         await this.prisma.cartItem.update({
           where: { id: cartItem.id },
-          data: { quantity: cartItem.quantity - 1 },
+          data: { amount: cartItem.amount - 1 },
         });
       } else {
-        // Quantity is 1, so delete the cart item.
+        // amount is 1, so delete the cart item.
         await this.prisma.cartItem.delete({
           where: { id: cartItem.id },
         });
@@ -169,7 +165,7 @@ export class CartService {
         data: { totalPrice: updatedTotalPrice },
       });
 
-      return { message: 'Product quantity decreased successfully' };
+      return { message: 'Product amount decreased successfully' };
     } catch (error) {
       console.error('Error in removeProductFromCart:', error);
       throw error;
