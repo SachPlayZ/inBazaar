@@ -1,0 +1,177 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// model User {
+//   id             String   @id @default(auto()) @map("_id") @db.ObjectId
+//   firstname      String?
+//   lastname       String?
+//   username       String   @unique
+//   email          String   @unique
+//   hash_password  String
+//   address        String?
+//   contact_number String
+//   refreshToken   String?
+//   // orders         Order[]
+//   Cart           Cart?
+//   createdAt      DateTime @default(now())
+//   updatedAt      DateTime @updatedAt
+
+//   @@map("user")
+// }
+
+enum Role {
+  BUYER
+  SELLER
+}
+
+model User {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  firstname      String?
+  lastname       String?
+  username       String   @unique
+  email          String   @unique
+  hash_password  String
+  role           Role     @default(BUYER)
+  address        String?
+  contact_number String?
+  refreshToken   String?
+  Cart           Cart?
+  seller         Seller? // No @relation attribute here
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("user")
+}
+
+model Product {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name        String
+  url         String
+  description String
+  price       Float
+  seller      Seller     @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  sellerId    String     @db.ObjectId
+  Category    Category?  @relation(fields: [categoryId], references: [id])
+  categoryId  String?    @db.ObjectId
+  CartItem    CartItem[]
+
+  @@map("products")
+}
+
+model Category {
+  id       String       @id @default(auto()) @map("_id") @db.ObjectId
+  type     CategoryType
+  slug     String       @unique
+  products Product[]
+}
+
+enum CategoryType {
+  FashionMale
+  FashionFemale
+  Groceries
+  Furniture
+  Kids
+}
+
+model Cart {
+  id                   String     @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+  user                 User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id              String     @unique @db.ObjectId
+  cartItems            CartItem[]
+  totalPrice           Int
+  totalDiscountedPrice Int?
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  cartId    String   @db.ObjectId
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String   @db.ObjectId
+
+  @@map("cart_items")
+}
+
+// model Seller {
+//   id           String    @id @default(auto()) @map("_id") @db.ObjectId
+//   name         String
+//   email        String    @unique
+//   hashPassword String
+//   products     Product[]
+//   createdAt    DateTime  @default(now())
+//   updatedAt    DateTime  @updatedAt
+//   User         User[]
+
+//   @@map("sellers")
+// }
+
+model Seller {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String    @unique @db.ObjectId
+  // Define the relation only on this side
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shopName  String
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("seller")
+}
+
+// model Order {
+//   id        String   @id @default(auto()) @map("_id") @db.ObjectId
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+
+//   status     Status
+//   totalPrice Float
+
+//   orderItems OrderItem[]
+
+//   userId String @db.ObjectId
+//   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+//   @@map("orders")
+// }
+
+// enum Status {
+//   PENDING
+//   CANCELED
+//   COMPLETED
+// }
+
+// model OrderItem {
+//   id        String   @id @default(auto()) @map("_id") @db.ObjectId
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+
+//   productId String @db.ObjectId
+//   quantity  Int
+
+//   orderId String @db.ObjectId
+//   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+//   @@map("order_items")
+// }
