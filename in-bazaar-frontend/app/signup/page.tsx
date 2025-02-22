@@ -3,9 +3,11 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
+import { useUser } from "@/contexts/UserContext";
+import { useRouter } from "next/navigation";
 
 interface SignupData {
   firstname: string;
@@ -18,6 +20,9 @@ interface SignupData {
   contact_number?: string;
 }
 
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
+
 export default function AuthPage() {
   const [isSignup, setIsSignup] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
@@ -29,6 +34,15 @@ export default function AuthPage() {
     email: "",
     password: "",
   });
+  const { login, user } = useUser();
+  const router = useRouter();
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (user) {
+      router.push("/");
+    }
+  }, [user, router]);
 
   const handleInputChange = (field: keyof SignupData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -37,20 +51,97 @@ export default function AuthPage() {
   const handleSubmit = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/signup", {
+      console.log(formData);
+      const response = await fetch(`${BACKEND_URL}/user/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ...formData, role: "BUYER" }),
+        body: JSON.stringify({
+          firstname: formData.firstname,
+          lastname: formData.lastname,
+          url: formData.url,
+          username: formData.username,
+          email: formData.email,
+          address: formData.address,
+          contact_number: formData.contact_number,
+          role: "BUYER",
+          hash_password: formData.password,
+        }),
       });
 
-      if (!response.ok) throw new Error("Signup failed");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Signup failed");
+      }
 
-      // Handle successful signup
-      console.log("Signup successful");
+      const data = await response.json();
+      login(data);
+      router.push("/");
     } catch (error) {
       console.error("Signup error:", error);
+      // Add proper error handling here
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogin = async (identifier: string, password: string) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${BACKEND_URL}/user/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ identifier, password }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Login failed");
+      }
+
+      const data = await response.json();
+      login(data);
+      router.push("/");
+    } catch (error) {
+      console.error("Login error:", error);
+      // Add proper error handling here
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+      const form = e.target as HTMLFormElement;
+      const identifier = (form.elements.namedItem("login") as HTMLInputElement)
+        .value;
+      const password = (form.elements.namedItem("password") as HTMLInputElement)
+        .value;
+
+      const response = await fetch(`${BACKEND_URL}/user/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ identifier, password }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Login failed");
+      }
+
+      const data = await response.json();
+      login(data);
+      router.push("/");
+    } catch (error) {
+      console.error("Login error:", error);
+      // Add proper error handling here
     } finally {
       setIsLoading(false);
     }
@@ -291,41 +382,56 @@ export default function AuthPage() {
               {isSignup ? (
                 renderSignupStep()
               ) : (
-                <motion.div
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  className="space-y-6"
-                >
-                  <div className="space-y-3">
-                    <RequiredLabel htmlFor="login">
-                      Email or Username
-                    </RequiredLabel>
-                    <Input
-                      id="login"
-                      className="bg-white/50 border-white/30 focus:border-teal-500 transition-colors h-12 text-lg"
-                      placeholder="Enter your email or username"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <RequiredLabel htmlFor="password">Password</RequiredLabel>
-                    <Input
-                      id="password"
-                      type="password"
-                      className="bg-white/50 border-white/30 focus:border-teal-500 transition-colors h-12 text-lg"
-                      placeholder="Enter your password"
-                      required
-                    />
-                  </div>
-                </motion.div>
+                <form onSubmit={handleLoginSubmit}>
+                  <motion.div
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    className="space-y-6"
+                  >
+                    <div className="space-y-3">
+                      <RequiredLabel htmlFor="login">
+                        Email or Username
+                      </RequiredLabel>
+                      <Input
+                        id="login"
+                        name="login"
+                        className="bg-white/50 border-white/30 focus:border-teal-500 transition-colors h-12 text-lg"
+                        placeholder="Enter your email or username"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <RequiredLabel htmlFor="password">Password</RequiredLabel>
+                      <Input
+                        id="password"
+                        name="password"
+                        type="password"
+                        className="bg-white/50 border-white/30 focus:border-teal-500 transition-colors h-12 text-lg"
+                        placeholder="Enter your password"
+                        required
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-6 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-lg"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        "Sign In"
+                      )}
+                    </Button>
+                  </motion.div>
+                </form>
               )}
             </AnimatePresence>
 
             <motion.div className="mt-8 space-y-4">
-              {isSignup ? (
+              {isSignup && (
                 <>
                   <Button
                     onClick={() => {
@@ -354,17 +460,6 @@ export default function AuthPage() {
                     </Button>
                   )}
                 </>
-              ) : (
-                <Button
-                  disabled={isLoading}
-                  className="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-6 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-lg"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    "Sign In"
-                  )}
-                </Button>
               )}
             </motion.div>
 
