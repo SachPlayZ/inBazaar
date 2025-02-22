@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ShoppingCart, Menu, LogIn } from "lucide-react";
+import { Search, ShoppingCart, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { UserButton } from "./UserButton";
+
 const categories = [
   { name: "Fashion", emoji: "🎀", hyperlink: "category/fashion" },
   { name: "Groceries", emoji: "🛒", hyperlink: "category/groceries" },
@@ -99,17 +101,7 @@ export function Navbar() {
             >
               <ShoppingCart className="h-5 w-5" />
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="hidden md:flex items-center space-x-2 bg-teal-500 text-white hover:bg-teal-600"
-              onClick={() => {
-                router.push("/signup");
-              }}
-            >
-              <LogIn className="h-4 w-4" />
-              <span>Sign In</span>
-            </Button>
+            <UserButton />
             <Button
               variant="ghost"
               size="icon"

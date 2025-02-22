@@ -26,6 +26,8 @@ export class ProductController {
       url: string;
       description: string;
       price: number;
+      quantity: string;
+      stoploss: number;
       sellerUsername: string;
       categoryId?: string;
     },
