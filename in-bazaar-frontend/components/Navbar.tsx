@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, ShoppingCart, Menu, LogIn } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 const categories = [
   { name: "Fruits", emoji: "🍎" },
@@ -16,7 +17,7 @@ const categories = [
 
 export function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-
+  const router = useRouter();
   return (
     <div className="w-full flex justify-center p-4">
       <motion.nav
@@ -100,6 +101,9 @@ export function Navbar() {
               variant="outline"
               size="sm"
               className="hidden md:flex items-center space-x-2 bg-teal-500 text-white hover:bg-teal-600"
+              onClick={() => {
+                router.push("/signup");
+              }}
             >
               <LogIn className="h-4 w-4" />
               <span>Sign In</span>
