@@ -1,5 +1,6 @@
 "use client";
 import Carousel from "@/components/ui/carousel";
+import { BentoGridSecondDemo } from "@/components/bento";
 export default function Home() {
   const slideData = [
     {
@@ -24,8 +25,9 @@ export default function Home() {
     },
   ];
   return (
-    <div className="relative overflow-hidden w-full h-full py-20">
+    <div className="relative overflow-hidden w-full h-full py-20 flex flex-col items-center justify-center gap-24">
       <Carousel slides={slideData} />
+      <BentoGridSecondDemo />
     </div>
   );
 }

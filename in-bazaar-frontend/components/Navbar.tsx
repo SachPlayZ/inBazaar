@@ -7,11 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const categories = [
-  { name: "Fruits", emoji: "🍎" },
-  { name: "Veggies", emoji: "🥕" },
-  { name: "Snacks", emoji: "🍿" },
-  { name: "Drinks", emoji: "🥤" },
-  { name: "Frozen", emoji: "🧊" },
+  { name: "Fashion", emoji: "🎀" },
+  { name: "Groceries", emoji: "🛒" },
+  { name: "Electronics", emoji: "💻" },
+  { name: "Toys", emoji: "🧸" },
 ];
 
 export function Navbar() {
@@ -31,7 +30,7 @@ export function Navbar() {
             whileHover={{ scale: 1.05 }}
             className="text-2xl font-bold text-teal-600 flex-shrink-0"
           >
-            GenZ Groceries 🛒
+            inBazaar
           </motion.div>
 
           {/* Middle Section - Navigation */}
