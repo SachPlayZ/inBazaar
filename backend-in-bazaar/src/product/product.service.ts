@@ -82,8 +82,6 @@ export class ProductService {
   async findProductByName(name: string) {
     // Convert the search term to lower case for case-insensitive comparison.
     const searchTerm = name.trim().toLowerCase();
-    console.log(searchTerm);
-    console.log('Here');
     // Retrieve all products using your getAllProducts endpoint.
     const products = await this.getAllProducts();
 

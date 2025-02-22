@@ -13,46 +13,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// model User {
-//   id             String   @id @default(auto()) @map("_id") @db.ObjectId
-//   firstname      String?
-//   lastname       String?
-//   username       String   @unique
-//   email          String   @unique
-//   hash_password  String
-//   address        String?
-//   contact_number String
-//   refreshToken   String?
-//   // orders         Order[]
-//   Cart           Cart?
-//   createdAt      DateTime @default(now())
-//   updatedAt      DateTime @updatedAt
-
-//   @@map("user")
-// }
-
 enum Role {
   BUYER
   SELLER
 }
 
 model User {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  id             String      @id @default(auto()) @map("_id") @db.ObjectId
   firstname      String?
   lastname       String?
-  username       String   @unique
-  email          String   @unique
+  url            String?
+  username       String      @unique
+  email          String      @unique
   hash_password  String
-  role           Role     @default(BUYER)
+  role           Role        @default(BUYER)
   address        String?
   contact_number String?
   refreshToken   String?
   Cart           Cart?
+  orders         OrderItem[]
   seller         Seller? // No @relation attribute here
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   @@map("user")
+}
+
+type OrderItem {
+  productId String @db.ObjectId
+  quantity  Int
 }
 
 model Product {
@@ -64,6 +53,8 @@ model Product {
   url         String
   description String
   price       Float
+  quantity    String
+  stoploss    Float
   seller      Seller     @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   sellerId    String     @db.ObjectId
   Category    Category?  @relation(fields: [categoryId], references: [id])
@@ -81,10 +72,9 @@ model Category {
 }
 
 enum CategoryType {
-  FashionMale
-  FashionFemale
+  Fashion
   Groceries
-  Furniture
+  Electronics
   Kids
 }
 
@@ -106,26 +96,13 @@ model CartItem {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   product   Product  @relation(fields: [productId], references: [id])
-  quantity  Int
+  amount    Int
   cartId    String   @db.ObjectId
   cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
   productId String   @db.ObjectId
 
   @@map("cart_items")
 }
-
-// model Seller {
-//   id           String    @id @default(auto()) @map("_id") @db.ObjectId
-//   name         String
-//   email        String    @unique
-//   hashPassword String
-//   products     Product[]
-//   createdAt    DateTime  @default(now())
-//   updatedAt    DateTime  @updatedAt
-//   User         User[]
-
-//   @@map("sellers")
-// }
 
 model Seller {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -138,6 +115,14 @@ model Seller {
   updatedAt DateTime  @updatedAt
 
   @@map("seller")
+}
+
+model Order {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  cartItemId String   @db.ObjectId
+  orderTime  DateTime @default(now())
+
+  @@map("orders")
 }
 
 // model Order {
