@@ -1,8 +1,8 @@
+"use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import Link from "next/link";
 import { useState } from "react";
 
 export default function AuthPage() {
@@ -11,12 +11,10 @@ export default function AuthPage() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-[rgb(var(--background-start-rgb))]">
       <Card className="w-full max-w-md bg-[rgb(var(--background-end-rgb))] shadow-xl rounded-2xl p-6">
-        <CardHeader>
-          <CardTitle className="text-center text-teal-700 text-2xl font-bold">
+        <CardContent>
+          <CardTitle className="text-center text-teal-700 text-2xl font-bold mb-4">
             {isSignup ? "Sign Up" : "Sign In"}
           </CardTitle>
-        </CardHeader>
-        <CardContent>
           <form>
             {isSignup && (
               <div className="mb-4">
