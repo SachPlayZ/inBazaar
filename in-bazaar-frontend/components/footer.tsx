@@ -1,116 +1,82 @@
 import React from "react";
-import {
-  IconMail,
-  IconPhone,
-  IconArrowUpRight,
-  IconMapPin,
-} from "@tabler/icons-react";
+import Image from "next/image";
 
-export function Footer() {
+const Footer: React.FC = () => {
   return (
-    <footer className="mt-8 p-6 bg-white/20 backdrop-blur-lg border-t border-white/20">
-      <div className="max-w-4xl mx-auto">
-        {/* 3-column layout */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* About Column */}
-          <div className="flex flex-col space-y-2">
-            {/* Logo (optional) */}
-            <div className="text-xl font-bold text-black-500">Logo</div>
-            <p className="text-black-500 text-sm leading-relaxed">
-              We are a young company always looking for new and creative ideas
-              to help you with our products in your everyday work.
-            </p>
+    <footer className="w-full bg-white/10 backdrop-blur-md border-t border-white/20 shadow-lg">
+      <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
+        {/* Logo and Description */}
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
+            <Image
+              src="/logo.png" // Path to your logo in the public folder
+              alt="App Logo"
+              width={40}
+              height={40}
+              className="object-cover"
+            />
+          </div>
+          <p className="text-sm text-black/100 max-w-xs">
+            Bargaining at your fingertips. Shop local, pay on chain.
+          </p>
+        </div>
+
+        {/* Footer Links (Vertical) */}
+        <ul className="flex flex-col gap-2">
+          <li>
             <a
               href="#"
-              className="text-black-500 hover:text-white transition-colors text-sm"
-            >
-              Our Team
-            </a>
-          </div>
-
-          {/* Contact Column */}
-          <div className="flex flex-col space-y-2">
-            <h2 className="text-black-500 font-semibold text-sm mb-2">
-              Contact
-            </h2>
-            <div className="flex items-start space-x-2">
-              <IconMapPin className="h-4 w-4 text-black-500" />
-              <p className="text-black-500 text-sm">
-                Via Rossini 10, 10136 Turin, Italy
-              </p>
-            </div>
-            <div className="flex items-start space-x-2">
-              <IconPhone className="h-4 w-4 text-black-500" />
-              <p className="text-black-500 text-sm">
-                Phone: (0039) 333 12 68 347
-              </p>
-            </div>
-            <a
-              href="mailto:info@yourcompany.com"
-              className="group flex items-center text-black-500 hover:text-white transition-colors text-sm"
-            >
-              <IconMail className="h-4 w-4 mr-1" />
-              <span>info@yourcompany.com</span>
-              <IconArrowUpRight className="h-4 w-4 ml-1 transform opacity-0 translate-x-[-5px] transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0" />
-            </a>
-          </div>
-
-          {/* Links Column */}
-          <div className="flex flex-col space-y-2">
-            <h2 className="text-black-500 font-semibold text-sm mb-2">Links</h2>
-            <a
-              href="#"
-              className="text-black-500 hover:text-white transition-colors text-sm"
+              className="text-black hover:text-orange-400 transition-colors"
             >
               Home
             </a>
+          </li>
+          <li>
             <a
               href="#"
-              className="text-black-500 hover:text-white transition-colors text-sm"
+              className="text-black hover:text-orange-400 transition-colors"
             >
-              Features
+              About
             </a>
+          </li>
+          <li>
             <a
               href="#"
-              className="text-black-500 hover:text-white transition-colors text-sm"
+              className="text-black hover:text-orange-400 transition-colors"
             >
-              How it works
+              Services
             </a>
-            <a
-              href="#"
-              className="text-black-500 hover:text-white transition-colors text-sm"
-            >
-              Our clients
-            </a>
-            <a
-              href="#"
-              className="text-black-500 hover:text-white transition-colors text-sm"
-            >
-              Plans & pricing
-            </a>
-            <a
-              href="#"
-              className="text-black-500 hover:text-white transition-colors text-sm"
-            >
-              Affiliates
-            </a>
-            <a
-              href="#"
-              className="text-black-500 hover:text-white transition-colors text-sm"
-            >
-              Terms
-            </a>
-          </div>
-        </div>
+          </li>
+        </ul>
 
-        {/* Footer Bottom Row */}
-        <div className="flex flex-col md:flex-row justify-between items-center mt-8">
-          <div className="text-sm text-black-500">
-            &copy; {new Date().getFullYear()} Your Company Name. All rights
-            reserved.
-          </div>
+        {/* Email and Phone */}
+        <div className="flex flex-col gap-2">
+          <a
+            href="mailto:support@example.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-black hover:text-orange-400 transition-colors flex items-center gap-1"
+          >
+            support@example.com
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+              ↗
+            </span>
+          </a>
+          <a
+            href="tel:+1234567890"
+            className="text-black hover:text-orange-400 transition-colors"
+          >
+            +123 456 7890
+          </a>
         </div>
+      </div>
+
+      {/* Copyright */}
+      <div className="text-center py-4 text-sm text-black/70 border-t border-white/10">
+        &copy; 2023 Your Company. All rights reserved.
       </div>
     </footer>
   );
-}
+};
+
+export default Footer;
