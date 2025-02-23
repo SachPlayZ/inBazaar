@@ -9,7 +9,7 @@ const Footer: React.FC = () => {
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
             <Image
-              src="/logo.png" // Path to your logo in the public folder
+              src="/logo.png"
               alt="App Logo"
               width={40}
               height={40}

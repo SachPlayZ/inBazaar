@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { UserButton } from "./UserButton";
 
 const categories = [
@@ -33,7 +34,9 @@ export function Navbar() {
             whileHover={{ scale: 1.05 }}
             className="text-2xl font-bold text-teal-600 flex-shrink-0"
           >
-            <Link href="/">inBazaar</Link>
+            <Link href="/">
+              <Image src="/logo.png" alt="inBazaar" width={32} height={32} />
+            </Link>
           </motion.div>
 
           {/* Middle Section - Navigation */}
