@@ -3,115 +3,98 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { Button } from "./button";
+import { Input } from "./input";
+import { Plus, Minus } from "lucide-react";
 
 // We have two Product interfaces, so let's combine them into one
 interface Product {
-  id: number;
+  id: string;
   title: string;
-  quantity?: number;
-  onQuantityChange?: (quantity: number) => void;
-  onAddToCart?: (quantity: number) => void;
+  description: string;
   image: string;
+  price: number;
+  seller: string;
+  stock: number;
+  onAddToCart: (quantity: number) => void;
 }
 
-export const HoverEffect = ({
+export function HoverEffect({
   items,
   className,
 }: {
   items: Product[];
   className?: string;
-}) => {
-  // We'll keep the hover state for styling purposes, but without animation
-  let [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-
+}) {
   return (
     <div
       className={cn(
-        "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 py-10",
+        "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4",
         className
       )}
     >
-      {items.map((item, idx) => (
-        <Link
-          href="#"
-          // Using item.id for the key instead of index
-          key={item.id}
-          className="relative group block p-2 h-full w-full"
-          onMouseEnter={() => setHoveredIndex(idx)}
-          onMouseLeave={() => setHoveredIndex(null)}
-        >
-          {/* Background image */}
-          <div
-            className="absolute inset-0 h-full w-full bg-cover bg-center rounded-3xl"
-            style={{ backgroundImage: `url(${item.image})` }}
-          />
-
-          {/* Hover overlay - now without animation */}
-          {hoveredIndex === idx && (
-            <div className="absolute inset-0 h-full w-full block rounded-3xl transition-opacity duration-150" />
-          )}
-
-          <Card>
-            <CardTitle>{item.title}</CardTitle>
-            <ProductControls product={item} />
-          </Card>
-        </Link>
+      {items.map((item) => (
+        <ProductCard key={item.id} item={item} />
       ))}
     </div>
   );
-};
+}
 
-const ProductControls = ({ product }: { product: Product }) => {
-  const [quantity, setQuantity] = useState<number>(1);
-
-  const handleIncrease = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const newQuantity = quantity + 1;
-    setQuantity(newQuantity);
-    product.onQuantityChange?.(newQuantity);
-  };
-
-  const handleDecrease = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (quantity > 1) {
-      const newQuantity = quantity - 1;
-      setQuantity(newQuantity);
-      product.onQuantityChange?.(newQuantity);
-    }
-  };
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    product.onAddToCart?.(quantity);
-    alert(`${product.title} (x${quantity}) added to cart!`);
-  };
+function ProductCard({ item }: { item: Product }) {
+  const [quantity, setQuantity] = useState(1);
 
   return (
-    <div className="mt-8 flex flex-col items-center gap-4">
-      <div className="flex items-center gap-2">
-        <button
-          onClick={handleDecrease}
-          className="px-2 py-1 bg-zinc-700 text-zinc-100 rounded hover:bg-zinc-600 transition-colors"
-        >
-          -
-        </button>
-        <span className="text-zinc-100">{quantity}</span>
-        <button
-          onClick={handleIncrease}
-          className="px-2 py-1 bg-zinc-700 text-zinc-100 rounded hover:bg-zinc-600 transition-colors"
-        >
-          +
-        </button>
+    <div className="group relative flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white">
+      <div className="aspect-h-4 aspect-w-3 bg-gray-200 sm:aspect-none group-hover:opacity-75 sm:h-96">
+        <img
+          src={item.image}
+          alt={item.title}
+          className="h-full w-full object-cover object-center sm:h-full sm:w-full"
+        />
       </div>
-      <button
-        onClick={handleAddToCart}
-        className="w-full px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-      >
-        Add to Cart
-      </button>
+      <div className="flex flex-1 flex-col space-y-2 p-4">
+        <h3 className="text-sm font-medium text-gray-900">{item.title}</h3>
+        <p className="text-sm text-gray-500">{item.description}</p>
+        <div className="flex flex-1 flex-col justify-end">
+          <p className="text-base font-medium text-gray-900">${item.price}</p>
+          <p className="text-sm text-gray-500">Seller: {item.seller}</p>
+          <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <Input
+                type="number"
+                min="1"
+                max={item.stock}
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                className="w-16 text-center"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setQuantity(Math.min(item.stock, quantity + 1))}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <Button
+              onClick={() => item.onAddToCart(quantity)}
+              disabled={!item.stock}
+            >
+              Add to Cart
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
-};
+}
 
 export const Card = ({
   className,

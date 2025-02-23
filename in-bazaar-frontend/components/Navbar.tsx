@@ -10,10 +10,10 @@ import Link from "next/link";
 import { UserButton } from "./UserButton";
 
 const categories = [
-  { name: "Fashion", emoji: "🎀", hyperlink: "category/fashion" },
-  { name: "Groceries", emoji: "🛒", hyperlink: "category/groceries" },
-  { name: "Electronics", emoji: "💻", hyperlink: "category/electronics" },
-  { name: "Toys", emoji: "🧸", hyperlink: "category/toys" },
+  { name: "Fashion", emoji: "🎀", hyperlink: "/category/fashion" },
+  { name: "Groceries", emoji: "🛒", hyperlink: "/category/groceries" },
+  { name: "Electronics", emoji: "💻", hyperlink: "/category/electronics" },
+  { name: "Toys", emoji: "🧸", hyperlink: "/category/kids" },
 ];
 
 export function Navbar() {
@@ -50,7 +50,7 @@ export function Navbar() {
                   {categories.map((category) => (
                     <motion.a
                       key={category.name}
-                      href={`${category.name.toLowerCase()}`}
+                      href={`${category.hyperlink.toLowerCase()}`}
                       className="text-teal-700 hover:text-teal-500 transition-colors duration-200"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
