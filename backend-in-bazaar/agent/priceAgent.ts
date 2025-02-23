@@ -1,44 +1,53 @@
-import { initializeAgentExecutorWithOptions } from "langchain/agents";
-import { ChatGroq } from "@langchain/groq";
-import { createGoogleShoppingTool } from "./tools/webScrape";
-import { PriceSuggestion, ProductPrice, QuantityInfo } from "../types";
-import { parseQuantity, normalizePrice, getDisplayUnit, extractQuantityFromText } from '../utils/quantity';
-import dotenv from 'dotenv';
+import { initializeAgentExecutorWithOptions } from 'langchain/agents';
+import { ChatGroq } from '@langchain/groq';
+import { createGoogleShoppingTool } from './tools/webScrape';
+import { PriceSuggestion, ProductPrice, QuantityInfo } from '../types';
+import {
+  parseQuantity,
+  normalizePrice,
+  getDisplayUnit,
+  extractQuantityFromText,
+} from '../utils/quantity';
+// import dotenv from 'dotenv';
 
-dotenv.config();
+// dotenv.config();
 
 const groqApiKey = process.env.GROQ_API_KEY;
 const serpApiKey = process.env.SERP_API_KEY;
 
-if (!groqApiKey) throw new Error('GROQ_API_KEY is not set in environment variables');
-if (!serpApiKey) throw new Error('SERP_API_KEY is not set in environment variables');
+if (!groqApiKey)
+  throw new Error('GROQ_API_KEY is not set in environment variables');
+if (!serpApiKey)
+  throw new Error('SERP_API_KEY is not set in environment variables');
 
 export async function createPriceAgent() {
   const model = new ChatGroq({
     apiKey: groqApiKey,
-    model: "llama3-70b-8192",
+    model: 'llama3-70b-8192',
   });
 
   const tools = [createGoogleShoppingTool()];
 
   return await initializeAgentExecutorWithOptions(tools, model, {
-    agentType: "chat-conversational-react-description",
+    agentType: 'chat-conversational-react-description',
     verbose: true,
   });
 }
 
 export async function getPriceSuggestion(
-  productName: string, 
+  productName: string,
   quantityStr: string,
-  basePrice: number
+  basePrice: number,
 ): Promise<{
   suggestion: PriceSuggestion;
-  analysis: string;
+  // analysis: string;
 }> {
   try {
     const quantity = parseQuantity(quantityStr);
     const searchTool = createGoogleShoppingTool();
-    const searchResult = await searchTool.func(`${productName} ${quantity.value}${quantity.unit}`);
+    const searchResult = await searchTool.func(
+      `${productName} ${quantity.value}${quantity.unit}`,
+    );
     let priceData = JSON.parse(searchResult);
 
     if (priceData.error) {
@@ -64,15 +73,16 @@ export async function getPriceSuggestion(
             url: item.url || '',
             rating: item.rating,
             reviews: item.reviews,
-            delivery: item.delivery
+            delivery: item.delivery,
           };
         } catch (e) {
           console.error('Error processing price item:', e);
           return null;
         }
       })
-      .filter((item: ProductPrice | null): item is ProductPrice => 
-        item !== null && !isNaN(item.price) && item.price > 0
+      .filter(
+        (item: ProductPrice | null): item is ProductPrice =>
+          item !== null && !isNaN(item.price) && item.price > 0,
       );
 
     if (prices.length === 0) {
@@ -80,17 +90,24 @@ export async function getPriceSuggestion(
     }
 
     const baseUnit = getDisplayUnit(quantity.category);
-    const priceValues = prices.map((p: { price: any; }) => p.price);
-    
+    const priceValues = prices.map((p: { price: any }) => p.price);
+
     // Calculate weighted average based on retailer ratings
-    const weightedPrices = prices.map((p: { price: any; rating: any; }) => ({
+    const weightedPrices = prices.map((p: { price: any; rating: any }) => ({
       price: p.price,
-      weight: p.rating ? p.rating : 1
+      weight: p.rating ? p.rating : 1,
     }));
-    
-    const totalWeight = weightedPrices.reduce((sum: any, item: { weight: any; }) => sum + item.weight, 0);
-    const weightedAverage = weightedPrices.reduce((sum: number, item: { price: number; weight: number; }) => 
-      sum + (item.price * item.weight), 0) / totalWeight;
+
+    const totalWeight = weightedPrices.reduce(
+      (sum: any, item: { weight: any }) => sum + item.weight,
+      0,
+    );
+    const weightedAverage =
+      weightedPrices.reduce(
+        (sum: number, item: { price: number; weight: number }) =>
+          sum + item.price * item.weight,
+        0,
+      ) / totalWeight;
 
     const marketLow = Math.min(...priceValues);
     const marketHigh = Math.max(...priceValues);
@@ -101,8 +118,7 @@ export async function getPriceSuggestion(
     if (suggestedPrice >= basePrice) {
       // If market average is higher than base price, set price 1% below base price
       suggestedPrice = basePrice * 0.97;
-    }
-    else if (suggestedPrice < basePrice * 0.85) {
+    } else if (suggestedPrice < basePrice * 0.85) {
       suggestedPrice = basePrice * 0.95;
     }
     // If market average is between 1-15% below base price
@@ -121,13 +137,22 @@ export async function getPriceSuggestion(
       unit: baseUnit,
       trustedRetailersCount: prices.length,
       confidence: 0,
-      reasoning: ""
+      reasoning: '',
     };
 
-    const analysis = generateAnalysis(productName, quantity, suggestion, prices, basePrice);
+    const analysis = generateAnalysis(
+      productName,
+      quantity,
+      suggestion,
+      prices,
+      basePrice,
+    );
 
-    return { suggestion, analysis };
+    // console.log('Muski');
+    // console.log(suggestedPrice);
+    // console.log(suggestion);
 
+    return { suggestion };
   } catch (error) {
     console.error('Error in price analysis:', error);
     throw error;
@@ -139,20 +164,21 @@ function generateAnalysis(
   quantity: QuantityInfo,
   suggestion: PriceSuggestion,
   prices: ProductPrice[],
-  basePrice: number
+  basePrice: number,
 ): string {
   const retailerBreakdown = prices
     .sort((a, b) => a.price - b.price)
-    .map(p => {
+    .map((p) => {
       const ratingInfo = p.rating ? ` (Rating: ${p.rating}/5)` : '';
       const deliveryInfo = p.delivery ? ' - Delivery Available' : '';
       return `   - ${p.retailer}: ₹${p.originalPrice} for ${p.quantity.value}${p.quantity.unit}${ratingInfo}${deliveryInfo}`;
     })
     .join('\n');
 
-  const pricingStrategy = suggestion.suggestedPrice < basePrice 
-    ? `Suggested price is set below market average to maintain competitiveness while staying under base price of ₹${basePrice}`
-    : `Market prices are significantly below base price of ₹${basePrice}, suggesting room for competitive pricing`;
+  const pricingStrategy =
+    suggestion.suggestedPrice < basePrice
+      ? `Suggested price is set below market average to maintain competitiveness while staying under base price of ₹${basePrice}`
+      : `Market prices are significantly below base price of ₹${basePrice}, suggesting room for competitive pricing`;
 
   return `Market Analysis for ${productName} (${quantity.value}${quantity.unit}):
 1. Trusted Retailer Price Range: ₹${suggestion.marketLow.toFixed(2)} to ₹${suggestion.marketHigh.toFixed(2)} per ${suggestion.unit}
@@ -170,26 +196,30 @@ ${retailerBreakdown}
 }
 
 function calculateAverageRating(prices: ProductPrice[]): string {
-  const ratingsAvailable = prices.filter(p => p.rating !== undefined);
+  const ratingsAvailable = prices.filter((p) => p.rating !== undefined);
   if (ratingsAvailable.length === 0) return 'N/A';
-  
-  const avgRating = ratingsAvailable.reduce((sum, p) => sum + (p.rating || 0), 0) / ratingsAvailable.length;
+
+  const avgRating =
+    ratingsAvailable.reduce((sum, p) => sum + (p.rating || 0), 0) /
+    ratingsAvailable.length;
   return avgRating.toFixed(1) + '/5';
 }
 
 function calculateDeliveryStats(prices: ProductPrice[]): string {
-  const withDelivery = prices.filter(p => p.delivery).length;
+  const withDelivery = prices.filter((p) => p.delivery).length;
   return `${withDelivery}/${prices.length} retailers offer delivery`;
 }
 
 function calculatePriceConsistency(prices: ProductPrice[]): string {
   if (prices.length < 2) return 'Insufficient data';
-  
+
   const avg = prices.reduce((sum, p) => sum + p.price, 0) / prices.length;
-  const variance = prices.reduce((sum, p) => sum + Math.pow(p.price - avg, 2), 0) / prices.length;
+  const variance =
+    prices.reduce((sum, p) => sum + Math.pow(p.price - avg, 2), 0) /
+    prices.length;
   const stdDev = Math.sqrt(variance);
   const coefficientOfVariation = (stdDev / avg) * 100;
-  
+
   if (coefficientOfVariation < 10) return 'High (prices are very consistent)';
   if (coefficientOfVariation < 20) return 'Medium (some price variation)';
   return 'Low (significant price variation)';
