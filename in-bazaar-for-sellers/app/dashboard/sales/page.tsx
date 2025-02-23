@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Overview } from "@/components/overview";
 import { RecentSales } from "@/components/recent-sales";
 
 export default function SalesPage() {
@@ -15,9 +14,7 @@ export default function SalesPage() {
           <CardHeader>
             <CardTitle>Sales Overview</CardTitle>
           </CardHeader>
-          <CardContent className="pl-2">
-            <Overview />
-          </CardContent>
+          <CardContent className="pl-2">Placeholder</CardContent>
         </Card>
         <Card className="col-span-3">
           <CardHeader>
