@@ -382,6 +382,7 @@
 
 /* eslint-disable prettier/prettier */
 import { ChatGroq } from '@langchain/groq';
+import { count } from 'console';
 // import { data } from 'cheerio/dist/commonjs/api/attributes';
 // import dotenv from "dotenv";
 
@@ -666,68 +667,150 @@ Generate response:`;
     }
   }
 
+  // public async continueBargaining(
+  //   productName: string,
+  //   count: number,
+  //   currentPrice: number,
+  //   initialPrice: number,
+  //   stopLossPercentage: number,
+  //   // accepted: boolean = false,
+  // ): Promise<APIResponse<BargainingResponse>> {
+  //   try {
+  //     // if (!this.session) {
+  //     //   throw new Error('No active bargaining session');
+  //     // }
+
+  //     // const temp = {
+  //     //   status: 'success',
+  //     //   data: {
+  //     //     currentPrice: this.session.currentPrice,
+  //     //     message: `Deal finalized at ₹${this.session.currentPrice.toFixed(2)}`,
+  //     //     // attemptCount: this.session.attemptCount,
+  //     //     canContinue: false,
+  //     //     stopLossReached: false,
+  //     //     // priceSummary: this.generatePriceSummary('accepted'),
+  //     //   },
+  //     // };
+
+  //     // console.log(temp);
+
+  //     // if (accepted) {
+  //     //   return {
+  //     //     status: 'success',
+  //     //     data: {
+  //     //       currentPrice: this.session.currentPrice,
+  //     //       message: `Deal finalized at ₹${this.session.currentPrice.toFixed(2)}`,
+  //     //       // attemptCount: this.session.attemptCount,
+  //     //       canContinue: false,
+  //     //       stopLossReached: false,
+  //     //       // priceSummary: this.generatePriceSummary('accepted'),
+  //     //     },
+  //     //   };
+  //     // }
+
+  //     if (count >= this.MAX_ATTEMPTS) {
+  //       return {
+  //         status: 'success',
+  //         data: {
+  //           currentPrice: currentPrice,
+  //           message: `Final offer: ₹${this.session.currentPrice.toFixed(2)}`,
+  //           // attemptCount: this.session.attemptCount,
+  //           canContinue: false,
+  //           stopLossReached: false,
+  //           // priceSummary: this.generatePriceSummary('rejected'),
+  //         },
+  //       };
+  //     }
+
+  //     const previousPrice = currentPrice;
+  //     const stopLossPrice = this.calculateStopLossPrice(
+  //       initialPrice,
+  //       stopLossPercentage,
+  //     );
+
+  //     const newPrice = this.calculateNextPrice();
+  //     const isAtStopLoss = newPrice <= stopLossPrice;
+
+  //     currentPrice = newPrice;
+  //     count++;
+  //     this.session.priceHistory.push(newPrice);
+
+  //     const message = await this.generateBargainingResponse(
+  //       productName,
+  //       newPrice,
+  //       previousPrice,
+  //       this.session.quantity,
+  //       count,
+  //       isAtStopLoss,
+  //       count === this.MAX_ATTEMPTS,
+  //     );
+
+  //     return {
+  //       status: 'success',
+  //       data: {
+  //         currentPrice: newPrice,
+  //         message,
+  //         // attemptCount: this.session.attemptCount,
+  //         canContinue: !isAtStopLoss && count < this.MAX_ATTEMPTS,
+  //         stopLossReached: isAtStopLoss,
+  //         // priceSummary: this.generatePriceSummary('pending'),
+  //       },
+  //     };
+  //   } catch (error) {
+  //     return {
+  //       status: 'error',
+  //       error:
+  //         error instanceof Error ? error.message : 'An unknown error occurred',
+  //     };
+  //   }
+  // }
+
+  // ... existing code ...
+
   public async continueBargaining(
     productName: string,
-    accepted: boolean = false,
+    count: number,
+    currentPrice: number,
+    initialPrice: number,
+    stopLossPercentage: number,
   ): Promise<APIResponse<BargainingResponse>> {
     try {
-      if (!this.session) {
-        throw new Error('No active bargaining session');
-      }
+      // Initialize a new session for continuation
+      this.session = {
+        currentPrice: currentPrice,
+        initialPrice: initialPrice,
+        stopLossPercentage: stopLossPercentage,
+        attemptCount: count,
+        priceHistory: [currentPrice],
+        quantity: '1', // You might want to pass this as a parameter
+        minReduction: 1,
+        maxReduction: 5,
+        lastResponse: '',
+      };
 
-      // const temp = {
-      //   status: 'success',
-      //   data: {
-      //     currentPrice: this.session.currentPrice,
-      //     message: `Deal finalized at ₹${this.session.currentPrice.toFixed(2)}`,
-      //     // attemptCount: this.session.attemptCount,
-      //     canContinue: false,
-      //     stopLossReached: false,
-      //     // priceSummary: this.generatePriceSummary('accepted'),
-      //   },
-      // };
-
-      // console.log(temp);
-
-      if (accepted) {
+      if (count >= this.MAX_ATTEMPTS) {
         return {
           status: 'success',
           data: {
-            currentPrice: this.session.currentPrice,
-            message: `Deal finalized at ₹${this.session.currentPrice.toFixed(2)}`,
-            // attemptCount: this.session.attemptCount,
+            currentPrice: currentPrice,
+            message: `Final offer: ₹${currentPrice.toFixed(2)}`,
             canContinue: false,
             stopLossReached: false,
-            // priceSummary: this.generatePriceSummary('accepted'),
           },
         };
       }
 
-      if (this.session.attemptCount >= this.MAX_ATTEMPTS) {
-        return {
-          status: 'success',
-          data: {
-            currentPrice: this.session.currentPrice,
-            message: `Final offer: ₹${this.session.currentPrice.toFixed(2)}`,
-            // attemptCount: this.session.attemptCount,
-            canContinue: false,
-            stopLossReached: false,
-            // priceSummary: this.generatePriceSummary('rejected'),
-          },
-        };
-      }
-
-      const previousPrice = this.session.currentPrice;
+      const previousPrice = currentPrice;
       const stopLossPrice = this.calculateStopLossPrice(
-        this.session.initialPrice,
-        this.session.stopLossPercentage,
+        initialPrice,
+        stopLossPercentage,
       );
 
       const newPrice = this.calculateNextPrice();
       const isAtStopLoss = newPrice <= stopLossPrice;
 
-      this.session.currentPrice = newPrice;
-      this.session.attemptCount++;
+      currentPrice = newPrice;
+      count++;
       this.session.priceHistory.push(newPrice);
 
       const message = await this.generateBargainingResponse(
@@ -735,9 +818,9 @@ Generate response:`;
         newPrice,
         previousPrice,
         this.session.quantity,
-        this.session.attemptCount,
+        count,
         isAtStopLoss,
-        this.session.attemptCount === this.MAX_ATTEMPTS,
+        count === this.MAX_ATTEMPTS,
       );
 
       return {
@@ -745,11 +828,8 @@ Generate response:`;
         data: {
           currentPrice: newPrice,
           message,
-          // attemptCount: this.session.attemptCount,
-          canContinue:
-            !isAtStopLoss && this.session.attemptCount < this.MAX_ATTEMPTS,
+          canContinue: !isAtStopLoss && count < this.MAX_ATTEMPTS,
           stopLossReached: isAtStopLoss,
-          // priceSummary: this.generatePriceSummary('pending'),
         },
       };
     } catch (error) {
@@ -760,4 +840,6 @@ Generate response:`;
       };
     }
   }
+
+  // ... existing code ...
 }

@@ -183,4 +183,48 @@ export class BargainService {
       throw error;
     }
   }
+
+  async continueBargain(
+    cartItemId: string,
+    currentPrice: number,
+    initialPrice: number,
+    stopLossPercentage: number,
+  ) {
+    try {
+      // First verify the cart item exists
+      const cartItem = await this.prisma.cartItem.findUnique({
+        where: { id: cartItemId },
+        include: {
+          product: true,
+        },
+      });
+
+      if (!cartItem) {
+        throw new Error('Cart item not found');
+      }
+
+      const agent = new BargainingAgent();
+
+      console.log(cartItem);
+
+      const res2 = await agent.continueBargaining(
+        cartItem.productId,
+        1,
+        currentPrice,
+        initialPrice,
+        stopLossPercentage,
+      );
+      console.log(res2);
+
+      // await this.prisma.cartItem.delete({
+      //   where: { id: cartItemId },
+      //   include: {
+      //     product: true,
+      //   },
+      // });
+    } catch (error) {
+      this.logger.error('Error updating cart item discounted price:', error);
+      throw error;
+    }
+  }
 }

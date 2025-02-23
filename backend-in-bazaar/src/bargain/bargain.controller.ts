@@ -38,10 +38,15 @@ import {
 } from '@nestjs/common';
 import { BargainService } from './bargain.service';
 import { APIResponse, BargainingResponse } from '../../agent/bargainingAgent';
+import { OrderDecisionDto } from 'src/order/dto/Order.dto';
+import { OrderService } from 'src/order/order.service';
 
 @Controller('bargain')
 export class BargainController {
-  constructor(private readonly bargainService: BargainService) {}
+  constructor(
+    private readonly bargainService: BargainService,
+    private readonly orderService: OrderService,
+  ) {}
 
   @Get('scraped-price')
   async getScrapedPrice(@Query('cartItemId') cartItemId: string) {
@@ -86,5 +91,30 @@ export class BargainController {
       throw new BadRequestException('Invalid suggestedPrice value');
     }
     return await this.bargainService.acceptBargain(cartItemId, suggestedPrice);
+  }
+
+  @Post('/continue')
+  async continue_bargain(
+    @Body()
+    body: {
+      cartItemId: string;
+      currentPrice: number;
+      initialPrice: number;
+      stopLossPercentage: number;
+    },
+  ) {
+    const { cartItemId, currentPrice, initialPrice, stopLossPercentage } = body;
+    return await this.bargainService.continueBargain(
+      cartItemId,
+      currentPrice,
+      initialPrice,
+      stopLossPercentage,
+    );
+  }
+
+  @Post('/decline')
+  async declineBargain(@Body() orderDecisionDto: OrderDecisionDto) {
+    const { username, productId } = orderDecisionDto;
+    return await this.orderService.declineOrder(username, productId);
   }
 }
