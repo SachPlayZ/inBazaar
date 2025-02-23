@@ -51,7 +51,13 @@ export function Navbar() {
             className="text-2xl font-bold text-teal-600 flex-shrink-0"
           >
             <Link href="/">
-              <Image src="/logo.png" alt="inBazaar" width={32} height={32} />
+              <Image
+                className="rounded-full"
+                src="/logo.png"
+                alt="inBazaar"
+                width={44}
+                height={44}
+              />
             </Link>
           </motion.div>
 

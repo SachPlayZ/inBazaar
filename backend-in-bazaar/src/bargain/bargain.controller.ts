@@ -56,7 +56,7 @@ export class BargainController {
     return await this.bargainService.getScrapedPrice(cartItemId);
   }
 
-  @Post('/chat')
+  @Get('chat')
   async getBargain(
     @Query('cartItemId') cartItemId: string,
   ): Promise<APIResponse<BargainingResponse>> {
