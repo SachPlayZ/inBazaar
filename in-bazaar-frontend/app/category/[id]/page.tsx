@@ -113,7 +113,7 @@ export default function CategoryPage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="mx-auto max-w-6xl p-6">
+    <div className="mx-auto max-w-6xl p-6 min-h-screen">
       <h1 className="text-2xl font-bold mb-6 capitalize">
         {categoryName} Collection
       </h1>
@@ -136,7 +136,7 @@ export default function CategoryPage({ params }: { params: { id: string } }) {
               </p>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm">{product.measuringUnit}</span>
-                <span className="font-bold">${product.price}</span>
+                <span className="font-bold">₹{product.price}</span>
               </div>
               <p className="text-sm text-gray-500 mb-4">
                 Seller: {product.seller.username}

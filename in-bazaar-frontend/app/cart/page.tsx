@@ -6,6 +6,7 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@/contexts/UserContext";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
@@ -15,21 +16,51 @@ interface CartItem {
   quantity: number;
   product: {
     id: string;
-    title: string;
+    name: string;
     price: number;
-    image: string;
+    url: string;
+    description: string;
+    measuringUnit: string;
   };
+  cartId: string;
+  suggestedPrice?: number;
+  discountedPrice?: number;
+  isSuggestedPriceLoading?: boolean;
 }
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useUser();
+  const router = useRouter();
 
   useEffect(() => {
     if (!user) return;
     fetchCartItems();
   }, [user]);
+
+  const fetchSuggestedPrice = async (cartItemId: string) => {
+    try {
+      const response = await fetch(
+        `${BACKEND_URL}/bargain/suggested-price/${cartItemId}`,
+        {
+          credentials: "include",
+        }
+      );
+      if (!response.ok) {
+        console.error(
+          "Failed to fetch suggested price:",
+          await response.text()
+        );
+        return null;
+      }
+      const data = await response.json();
+      return data.suggestedPrice;
+    } catch (error) {
+      console.error("Error fetching suggested price:", error);
+      return null;
+    }
+  };
 
   const fetchCartItems = async () => {
     try {
@@ -38,11 +69,31 @@ export default function CartPage() {
       );
       if (!response.ok) throw new Error("Failed to fetch cart");
       const data = await response.json();
-      setCartItems(data);
+
+      const itemsWithLoadingState = data.map((item: CartItem) => ({
+        ...item,
+        isSuggestedPriceLoading: true,
+      }));
+      setCartItems(itemsWithLoadingState);
+      setLoading(false);
+
+      for (const item of itemsWithLoadingState) {
+        const suggestedPrice = await fetchSuggestedPrice(item.id);
+        setCartItems((prevItems) =>
+          prevItems.map((prevItem) =>
+            prevItem.id === item.id
+              ? {
+                  ...prevItem,
+                  suggestedPrice,
+                  isSuggestedPriceLoading: false,
+                }
+              : prevItem
+          )
+        );
+      }
     } catch (error) {
       console.error("Error fetching cart:", error);
       toast.error("Failed to load cart items");
-    } finally {
       setLoading(false);
     }
   };
@@ -78,6 +129,35 @@ export default function CartPage() {
     }
   };
 
+  const handleBargain = async (cartItemId: string) => {
+    router.push(`/bargain/${cartItemId}`);
+  };
+
+  const handleCheckout = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/orders/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          items: cartItems.map((item) => ({
+            cartItemId: item.id,
+            quantity: item.quantity,
+            price: item.discountedPrice || item.product.price,
+          })),
+        }),
+      });
+
+      if (!response.ok) throw new Error("Checkout failed");
+
+      toast.success("Order placed successfully!");
+      router.push("/orders");
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast.error("Failed to place order");
+    }
+  };
+
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
@@ -90,15 +170,14 @@ export default function CartPage() {
     return <div className="container mx-auto px-4 py-8">Loading...</div>;
   }
 
-  const subtotal = cartItems.reduce(
-    (total, item) => total + item.product.price * item.quantity,
+  const total = cartItems.reduce(
+    (total, item) =>
+      total + (item.discountedPrice || item.product.price) * item.quantity,
     0
   );
-  const shipping = 10;
-  const total = subtotal + shipping;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 min-h-screen">
       <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
       <div className="space-y-6">
         <AnimatePresence>
@@ -111,8 +190,8 @@ export default function CartPage() {
               className="flex items-center bg-card/50 backdrop-blur-md shadow-lg rounded-lg p-6 space-x-6 border border-white/10"
             >
               <Image
-                src={item.product.image}
-                alt={item.product.title}
+                src={item.product.url}
+                alt={item.product.name}
                 width={200}
                 height={200}
                 className="rounded-md object-cover w-48 h-48 flex-shrink-0"
@@ -121,10 +200,37 @@ export default function CartPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h2 className="text-xl font-semibold">
-                      {item.product.title}
+                      {item.product.name}
                     </h2>
-                    <p className="text-muted-foreground">
-                      Price: ${item.product.price.toFixed(2)}
+                    <div className="flex items-center gap-2">
+                      <p className="text-muted-foreground">
+                        Price: ₹{item.product.price.toFixed(2)} per{" "}
+                        {item.product.measuringUnit}
+                      </p>
+                      {item.isSuggestedPriceLoading ? (
+                        <span className="px-2 py-1 bg-green-50 text-green-800 rounded-md text-sm animate-pulse">
+                          Loading suggestion...
+                        </span>
+                      ) : (
+                        item.suggestedPrice &&
+                        item.suggestedPrice < item.product.price && (
+                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-md text-sm flex items-center gap-1">
+                            <span>
+                              Suggested: ₹{item.suggestedPrice.toFixed(2)}
+                            </span>
+                            <span className="text-xs">
+                              (Save ₹
+                              {(
+                                item.product.price - item.suggestedPrice
+                              ).toFixed(2)}
+                              )
+                            </span>
+                          </span>
+                        )
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {item.product.description}
                     </p>
                   </div>
                   <Button
@@ -159,9 +265,22 @@ export default function CartPage() {
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
-                  <p className="text-lg font-bold">
-                    ${(item.product.price * item.quantity).toFixed(2)}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleBargain(item.id)}
+                      className="text-sm"
+                    >
+                      Bargain
+                    </Button>
+                    <p className="text-lg font-bold">
+                      ₹
+                      {(
+                        (item.discountedPrice || item.product.price) *
+                        item.quantity
+                      ).toFixed(2)}
+                    </p>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -171,19 +290,13 @@ export default function CartPage() {
       <div className="mt-8 flex justify-end">
         <div className="bg-card/50 backdrop-blur-md shadow-lg rounded-lg p-6 w-full md:w-1/3 border border-white/10">
           <h2 className="text-2xl font-semibold mb-4">Cart Summary</h2>
-          <div className="flex justify-between mb-2">
-            <span>Subtotal:</span>
-            <span>${subtotal.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between mb-4">
-            <span>Shipping:</span>
-            <span>${shipping.toFixed(2)}</span>
-          </div>
           <div className="flex justify-between text-lg font-bold">
             <span>Total:</span>
-            <span>${total.toFixed(2)}</span>
+            <span>₹{total.toFixed(2)}</span>
           </div>
-          <Button className="w-full mt-4">Proceed to Checkout</Button>
+          <Button className="w-full mt-4" onClick={handleCheckout}>
+            Proceed to Checkout
+          </Button>
         </div>
       </div>
     </div>

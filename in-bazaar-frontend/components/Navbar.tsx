@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, KeyboardEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, ShoppingCart, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,23 @@ const categories = [
 
 export function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setIsSearchOpen(false);
+      setSearchQuery("");
+    }
+  };
+
+  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
   return (
     <div className="w-full flex justify-center p-4">
       <motion.nav
@@ -80,6 +96,9 @@ export function Navbar() {
                   type="search"
                   placeholder="Search..."
                   className="bg-white bg-opacity-50 text-teal-800 placeholder-teal-400 rounded-full w-full"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleKeyPress}
                 />
               </motion.div>
               <Button
