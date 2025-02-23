@@ -121,6 +121,7 @@ model Order {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   cartItemId String   @db.ObjectId
   orderTime  DateTime @default(now())
+  quantity   Int
 
   @@map("orders")
 }

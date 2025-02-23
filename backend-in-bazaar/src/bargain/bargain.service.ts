@@ -61,6 +61,14 @@ export class BargainService {
     // Use the product id from the cart item to get the product details.
     const product = await this.findProductById(cartItem.productId);
 
-    // BargainingAgent.startBargaining();
+    const agent = new BargainingAgent();
+
+    const res1 = agent.startBargaining(
+      product.name,
+      product.measuringUnit,
+      product.price,
+      product.stoploss,
+    );
+    console.log(res1);
   }
 }
