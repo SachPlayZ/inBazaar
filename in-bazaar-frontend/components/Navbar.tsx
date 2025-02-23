@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, KeyboardEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, ShoppingCart, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -11,15 +11,31 @@ import Image from "next/image";
 import { UserButton } from "./UserButton";
 
 const categories = [
-  { name: "Fashion", emoji: "🎀", hyperlink: "category/fashion" },
-  { name: "Groceries", emoji: "🛒", hyperlink: "category/groceries" },
-  { name: "Electronics", emoji: "💻", hyperlink: "category/electronics" },
-  { name: "Toys", emoji: "🧸", hyperlink: "category/toys" },
+  { name: "Fashion", emoji: "🎀", hyperlink: "/category/fashion" },
+  { name: "Groceries", emoji: "🛒", hyperlink: "/category/groceries" },
+  { name: "Electronics", emoji: "💻", hyperlink: "/category/electronics" },
+  { name: "Toys", emoji: "🧸", hyperlink: "/category/kids" },
 ];
 
 export function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setIsSearchOpen(false);
+      setSearchQuery("");
+    }
+  };
+
+  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
   return (
     <div className="w-full flex justify-center p-4">
       <motion.nav
@@ -53,7 +69,7 @@ export function Navbar() {
                   {categories.map((category) => (
                     <motion.a
                       key={category.name}
-                      href={`${category.name.toLowerCase()}`}
+                      href={`${category.hyperlink.toLowerCase()}`}
                       className="text-teal-700 hover:text-teal-500 transition-colors duration-200"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
@@ -83,6 +99,9 @@ export function Navbar() {
                   type="search"
                   placeholder="Search..."
                   className="bg-white bg-opacity-50 text-teal-800 placeholder-teal-400 rounded-full w-full"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleKeyPress}
                 />
               </motion.div>
               <Button

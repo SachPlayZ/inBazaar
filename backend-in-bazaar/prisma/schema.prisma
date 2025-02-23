@@ -49,17 +49,17 @@ model Product {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  name        String
-  url         String
-  description String
-  price       Float
-  quantity    String
-  stoploss    Float
-  seller      Seller     @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  sellerId    String     @db.ObjectId
-  Category    Category?  @relation(fields: [categoryId], references: [id])
-  categoryId  String?    @db.ObjectId
-  CartItem    CartItem[]
+  name          String
+  url           String
+  description   String
+  price         Float
+  measuringUnit String?
+  stoploss      Float
+  seller        Seller     @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  sellerId      String     @db.ObjectId
+  Category      Category?  @relation(fields: [categoryId], references: [id])
+  categoryId    String?    @db.ObjectId
+  CartItem      CartItem[]
 
   @@map("products")
 }
@@ -86,20 +86,21 @@ model Cart {
   user_id              String     @unique @db.ObjectId
   cartItems            CartItem[]
   totalPrice           Int
-  totalDiscountedPrice Int?
+  totalDiscountedPrice Float?
 
   @@map("carts")
 }
 
 model CartItem {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  product   Product  @relation(fields: [productId], references: [id])
-  amount    Int
-  cartId    String   @db.ObjectId
-  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  productId String   @db.ObjectId
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  quantity        Int
+  product         Product  @relation(fields: [productId], references: [id])
+  cartId          String   @db.ObjectId
+  cart            Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId       String   @db.ObjectId
+  discountedPrice Float?
 
   @@map("cart_items")
 }
@@ -121,6 +122,7 @@ model Order {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   cartItemId String   @db.ObjectId
   orderTime  DateTime @default(now())
+  quantity   Int
 
   @@map("orders")
 }

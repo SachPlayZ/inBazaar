@@ -23,4 +23,10 @@ export class CategoryController {
   async getCategoryById(@Param('id') id: string) {
     return await this.categoryService.getCategoryById(id);
   }
+
+  // GET /category/slug/:slug - Get a category by slug
+  @Get('/slug/:slug')
+  async getCategoryBySlug(@Param('slug') slug: string) {
+    return await this.categoryService.getCategoryBySlug(slug);
+  }
 }
