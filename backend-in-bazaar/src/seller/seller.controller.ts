@@ -5,6 +5,7 @@ import {
   Get,
   UseGuards,
   Request,
+  Param,
 } from '@nestjs/common';
 import { SellerService } from './seller.service';
 import { CreateSellerDto } from './dto/Seller.dto';
@@ -53,5 +54,18 @@ export class SellerController {
   async createProduct(@Request() req, @Body() productData: CreateProductDto) {
     const sellerId = await this.sellerService.getSellerId(req.user.id);
     return await this.sellerService.createProduct(sellerId, productData);
+  }
+
+  @Get('category/:name')
+  async getCategoryByName(@Param('name') name: string) {
+    const category = await this.sellerService.getCategoryByName(name);
+    return category;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/inventory')
+  async getSellerProducts(@Request() req) {
+    const sellerId = await this.sellerService.getSellerId(req.user.id);
+    return await this.sellerService.getSellerProducts(sellerId);
   }
 }

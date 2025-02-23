@@ -69,7 +69,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ${stats.totalValue.toFixed(2)}
+                ₹{stats.totalValue.toFixed(2)}
               </div>
             </CardContent>
           </Card>
@@ -82,7 +82,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ${stats.averagePrice.toFixed(2)}
+                ₹{stats.averagePrice.toFixed(2)}
               </div>
             </CardContent>
           </Card>
@@ -105,7 +105,7 @@ export default function DashboardPage() {
                       {product.Category?.type}
                     </p>
                   </div>
-                  <p className="font-medium">${product.price.toFixed(2)}</p>
+                  <p className="font-medium">₹{product.price.toFixed(2)}</p>
                 </div>
               ))}
             </div>

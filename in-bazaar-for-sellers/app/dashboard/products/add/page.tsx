@@ -20,7 +20,8 @@ interface ProductFormData {
   description: string;
   price: string;
   stoploss: string;
-  measuringUnit: string;
+  measurementValue: string;
+  measurementUnit: string;
   categoryId: string;
 }
 
@@ -34,7 +35,8 @@ export default function AddProductPage() {
     description: "",
     price: "",
     stoploss: "",
-    measuringUnit: "piece",
+    measurementValue: "1",
+    measurementUnit: "piece",
     categoryId: "",
   });
 
@@ -55,18 +57,37 @@ export default function AddProductPage() {
     }));
   };
 
+  const fetchCategoryId = async (categoryType: string) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3001/seller/category/${categoryType}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch category");
+      }
+      const data = await response.json();
+      return data.id;
+    } catch (error) {
+      throw new Error("Failed to fetch category ID");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      await productService.createProduct({
+      const categoryId = await fetchCategoryId(formData.categoryId);
+      const productData = {
         ...formData,
         price: parseFloat(formData.price),
         stoploss: parseFloat(formData.stoploss),
-      });
-      router.push("/dashboard/products");
+        categoryId: categoryId,
+        measuringUnit: `${formData.measurementValue} ${formData.measurementUnit}`,
+      };
+      await productService.createProduct(productData);
+      router.push("/dashboard/inventory");
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to create product");
     } finally {
@@ -138,6 +159,42 @@ export default function AddProductPage() {
           </div>
         </div>
 
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Measurement</label>
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              name="measurementValue"
+              value={formData.measurementValue}
+              onChange={handleChange}
+              min="0.01"
+              step="0.01"
+              className="w-24"
+              required
+            />
+            <Select
+              value={formData.measurementUnit}
+              onValueChange={(value) =>
+                handleSelectChange("measurementUnit", value)
+              }
+            >
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="Select unit" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="piece">piece</SelectItem>
+                <SelectItem value="kg">kg</SelectItem>
+                <SelectItem value="g">g</SelectItem>
+                <SelectItem value="l">l</SelectItem>
+                <SelectItem value="ml">ml</SelectItem>
+                <SelectItem value="dozen">dozen</SelectItem>
+                <SelectItem value="pack">pack</SelectItem>
+                <SelectItem value="box">box</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <label className="text-sm font-medium">Category</label>
@@ -150,30 +207,9 @@ export default function AddProductPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Fashion">Fashion</SelectItem>
+                <SelectItem value="Groceries">Groceries</SelectItem>
                 <SelectItem value="Electronics">Electronics</SelectItem>
                 <SelectItem value="Kids">Kids</SelectItem>
-                <SelectItem value="Groceries">Groceries</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Measuring Unit</label>
-            <Select
-              value={formData.measuringUnit}
-              onValueChange={(value) =>
-                handleSelectChange("measuringUnit", value)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select unit" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="piece">Piece</SelectItem>
-                <SelectItem value="kg">Kilogram</SelectItem>
-                <SelectItem value="g">Gram</SelectItem>
-                <SelectItem value="l">Liter</SelectItem>
-                <SelectItem value="ml">Milliliter</SelectItem>
               </SelectContent>
             </Select>
           </div>

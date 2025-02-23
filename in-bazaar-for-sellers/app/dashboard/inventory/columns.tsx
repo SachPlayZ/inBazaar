@@ -13,7 +13,7 @@ export const columns = [
   {
     accessorKey: "price",
     header: "Price",
-    cell: (row: Product) => `$${row.price.toFixed(2)}`,
+    cell: (row: Product) => `₹${row.price.toFixed(2)}`,
   },
   {
     accessorKey: "stock",

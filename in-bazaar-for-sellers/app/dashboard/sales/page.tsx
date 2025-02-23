@@ -14,7 +14,9 @@ export default function SalesPage() {
           <CardHeader>
             <CardTitle>Sales Overview</CardTitle>
           </CardHeader>
-          <CardContent className="pl-2">Placeholder</CardContent>
+          <CardContent className="pl-2">
+            Placeholder for sales overview
+          </CardContent>
         </Card>
         <Card className="col-span-3">
           <CardHeader>

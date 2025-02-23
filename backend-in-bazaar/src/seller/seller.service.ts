@@ -10,6 +10,7 @@ import { CreateSellerDto } from './dto/Seller.dto';
 import { SellerLoginDto } from './dto/Login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { CreateProductDto } from './dto/Product.dto';
+import { CategoryType } from '@prisma/client';
 
 @Injectable()
 export class SellerService {
@@ -175,5 +176,39 @@ export class SellerService {
       },
     });
     return product;
+  }
+
+  async getCategoryByName(categoryType: string) {
+    const category = await this.prisma.category.findFirst({
+      where: {
+        type: categoryType as CategoryType,
+      },
+      select: {
+        id: true,
+        type: true,
+      },
+    });
+
+    if (!category) {
+      throw new NotFoundException(`Category "${categoryType}" not found`);
+    }
+
+    return category;
+  }
+
+  async getSellerProducts(sellerId: string) {
+    const products = await this.prisma.product.findMany({
+      where: {
+        sellerId: sellerId,
+      },
+      include: {
+        Category: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return products;
   }
 }
