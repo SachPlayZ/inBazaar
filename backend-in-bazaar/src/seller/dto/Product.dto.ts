@@ -1,4 +1,11 @@
-import { IsString, IsNumber, IsEnum, Min } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsUrl,
+  Min,
+  MaxLength,
+} from 'class-validator';
 
 export enum CategoryType {
   Fashion = 'Fashion',
@@ -9,12 +16,15 @@ export enum CategoryType {
 
 export class CreateProductDto {
   @IsString()
+  @MaxLength(100)
   name: string;
 
   @IsString()
+  @IsUrl()
   url: string;
 
   @IsString()
+  @MaxLength(1000)
   description: string;
 
   @IsNumber()
@@ -22,6 +32,7 @@ export class CreateProductDto {
   price: number;
 
   @IsString()
+  @MaxLength(20)
   measuringUnit: string;
 
   @IsNumber()
@@ -29,5 +40,6 @@ export class CreateProductDto {
   stoploss: number;
 
   @IsString()
+  @IsOptional()
   categoryId?: string;
 }

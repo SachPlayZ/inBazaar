@@ -35,7 +35,6 @@ import {
   BadRequestException,
   Post,
   Body,
-  Param,
 } from '@nestjs/common';
 import { BargainService } from './bargain.service';
 import { APIResponse, BargainingResponse } from '../../agent/bargainingAgent';
@@ -49,10 +48,10 @@ export class BargainController {
     private readonly orderService: OrderService,
   ) {}
 
-  @Get('suggested-price/:cartItemId')
-  async getScrapedPrice(@Param('cartItemId') cartItemId: string) {
+  @Get('scraped-price')
+  async getScrapedPrice(@Query('cartItemId') cartItemId: string) {
     if (!cartItemId) {
-      throw new BadRequestException('cartItemId parameter is required');
+      throw new BadRequestException('cartItemId query parameter is required');
     }
     return await this.bargainService.getScrapedPrice(cartItemId);
   }

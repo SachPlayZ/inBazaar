@@ -119,11 +119,9 @@ export class SellerService {
     const seller = await this.prisma.seller.findUnique({
       where: { userId },
     });
-    console.log('Seller = ', seller);
     if (!seller) {
       throw new NotFoundException('Seller not found');
     }
-
     return seller.id;
   }
 
@@ -144,7 +142,6 @@ export class SellerService {
       throw new NotFoundException('Seller not found');
     }
 
-    // Map the data to match the frontend expectations
     return {
       id: seller.id,
       name: seller.user.firstname,
@@ -152,30 +149,63 @@ export class SellerService {
       username: seller.user.username,
       shopName: seller.shopName,
       totalProducts: seller._count.products,
-      ordersCompleted: 0, // We'll implement this later when Order relation is added
     };
   }
 
   async createProduct(sellerId: string, productData: CreateProductDto) {
-    const product = await this.prisma.product.create({
-      data: {
-        name: productData.name,
-        url: productData.url,
-        description: productData.description,
-        price: productData.price,
-        measuringUnit: productData.measuringUnit,
-        stoploss: productData.stoploss,
-        seller: { connect: { id: sellerId } },
-        Category: productData.categoryId
-          ? { connect: { id: productData.categoryId } }
-          : undefined,
-      },
-      include: {
-        seller: true,
-        Category: true,
-      },
-    });
-    return product;
+    try {
+      // Verify category if provided
+      if (productData.categoryId) {
+        const category = await this.prisma.category.findUnique({
+          where: { id: productData.categoryId },
+        });
+        if (!category) {
+          throw new NotFoundException('Category not found');
+        }
+      }
+
+      // Validate seller exists
+      const seller = await this.prisma.seller.findUnique({
+        where: { id: sellerId },
+        include: { user: true },
+      });
+
+      if (!seller) {
+        throw new NotFoundException('Seller not found');
+      }
+
+      const product = await this.prisma.product.create({
+        data: {
+          name: productData.name,
+          url: productData.url,
+          description: productData.description,
+          price: productData.price,
+          measuringUnit: productData.measuringUnit,
+          stoploss: productData.stoploss,
+          seller: { connect: { id: sellerId } },
+          Category: productData.categoryId
+            ? { connect: { id: productData.categoryId } }
+            : undefined,
+        },
+        include: {
+          Category: true,
+        },
+      });
+
+      return {
+        ...product,
+        seller: {
+          id: seller.id,
+          name: seller.user.firstname,
+          shopName: seller.shopName,
+        },
+      };
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new ConflictException('Product already exists');
+      }
+      throw error;
+    }
   }
 
   async getCategoryByName(categoryType: string) {

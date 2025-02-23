@@ -3,21 +3,12 @@
 import { useEffect, useState } from "react";
 import { Package } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { analyticsService } from "@/services/analytics";
+import { productService, Product } from "@/services/product";
 
 interface DashboardStats {
   totalProducts: number;
   totalValue: number;
   averagePrice: number;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  Category?: {
-    type: string;
-  };
 }
 
 export default function DashboardPage() {
@@ -27,21 +18,30 @@ export default function DashboardPage() {
     averagePrice: 0,
   });
   const [recentProducts, setRecentProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const statsData = await analyticsService.getDashboardStats();
+        const [statsData, productsData] = await Promise.all([
+          productService.getDashboardStats(),
+          productService.getRecentProducts(),
+        ]);
         setStats(statsData);
-        const productsData = await analyticsService.getRecentProducts();
         setRecentProducts(productsData);
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchData();
   }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="p-6">
