@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 // import { Body, Controller, Get, Post } from '@nestjs/common';
 // import { BargainService } from './bargain.service';
 
@@ -36,6 +37,7 @@ import {
   Body,
 } from '@nestjs/common';
 import { BargainService } from './bargain.service';
+import { APIResponse, BargainingResponse } from '../../agent/bargainingAgent';
 
 @Controller('bargain')
 export class BargainController {
@@ -50,10 +52,39 @@ export class BargainController {
   }
 
   @Post('/chat')
-  async getBargain(@Query('cartItemId') cartItemId: string) {
+  async getBargain(
+    @Query('cartItemId') cartItemId: string,
+  ): Promise<APIResponse<BargainingResponse>> {
     if (!cartItemId) {
       throw new BadRequestException('cartItemId query parameter is required');
     }
     return await this.bargainService.doBargain(cartItemId);
+  }
+
+  // @Get('getBargain')
+  // async getBargain(
+  //   @Query('cartItemId') cartItemId: string,
+  // ): Promise<IBargainingResponse> {
+  //   if (!cartItemId) {
+  //     throw new BadRequestException('cartItemId query parameter is required');
+  //   }
+  //   return await this.bargainService.doBargain(cartItemId);
+  // }
+
+  @Post('/accept')
+  async acceptBargain(
+    @Body() body: { cartItemId: string; suggestedPrice: number },
+  ) {
+    const { cartItemId, suggestedPrice } = body;
+    if (!cartItemId) {
+      throw new BadRequestException('cartItemId is required in the body');
+    }
+    if (suggestedPrice === undefined || suggestedPrice === null) {
+      throw new BadRequestException('suggestedPrice is required in the body');
+    }
+    if (isNaN(suggestedPrice)) {
+      throw new BadRequestException('Invalid suggestedPrice value');
+    }
+    return await this.bargainService.acceptBargain(cartItemId, suggestedPrice);
   }
 }
