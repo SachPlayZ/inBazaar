@@ -2,12 +2,14 @@ import {
   ConflictException,
   Injectable,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'lib/database/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { CreateSellerDto } from './dto/Seller.dto';
 import { SellerLoginDto } from './dto/Login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { CreateProductDto } from './dto/Product.dto';
 
 @Injectable()
 export class SellerService {
@@ -80,5 +82,98 @@ export class SellerService {
     const token = this.jwtService.sign(payload);
 
     return { accessToken: token };
+  }
+
+  async getDashboardStats(sellerId: string) {
+    // Get basic stats that we can reliably calculate
+    const products = await this.prisma.product.findMany({
+      where: { sellerId },
+    });
+
+    const totalProducts = products.length;
+    const totalValue = products.reduce(
+      (sum, product) => sum + product.price,
+      0,
+    );
+
+    return {
+      totalProducts,
+      totalValue,
+      averagePrice: totalProducts > 0 ? totalValue / totalProducts : 0,
+    };
+  }
+
+  async getRecentProducts(sellerId: string) {
+    return await this.prisma.product.findMany({
+      where: { sellerId },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      include: {
+        Category: true,
+      },
+    });
+  }
+
+  async getSellerId(userId: string): Promise<string> {
+    const seller = await this.prisma.seller.findUnique({
+      where: { userId },
+    });
+    console.log('Seller = ', seller);
+    if (!seller) {
+      throw new NotFoundException('Seller not found');
+    }
+
+    return seller.id;
+  }
+
+  async getSellerDetails(sellerId: string) {
+    const seller = await this.prisma.seller.findUnique({
+      where: { id: sellerId },
+      include: {
+        user: true,
+        _count: {
+          select: {
+            products: true,
+          },
+        },
+      },
+    });
+
+    if (!seller) {
+      throw new NotFoundException('Seller not found');
+    }
+
+    // Map the data to match the frontend expectations
+    return {
+      id: seller.id,
+      name: seller.user.firstname,
+      email: seller.user.email,
+      username: seller.user.username,
+      shopName: seller.shopName,
+      totalProducts: seller._count.products,
+      ordersCompleted: 0, // We'll implement this later when Order relation is added
+    };
+  }
+
+  async createProduct(sellerId: string, productData: CreateProductDto) {
+    const product = await this.prisma.product.create({
+      data: {
+        name: productData.name,
+        url: productData.url,
+        description: productData.description,
+        price: productData.price,
+        measuringUnit: productData.measuringUnit,
+        stoploss: productData.stoploss,
+        seller: { connect: { id: sellerId } },
+        Category: productData.categoryId
+          ? { connect: { id: productData.categoryId } }
+          : undefined,
+      },
+      include: {
+        seller: true,
+        Category: true,
+      },
+    });
+    return product;
   }
 }

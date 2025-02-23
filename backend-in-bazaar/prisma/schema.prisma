@@ -120,7 +120,6 @@ model Seller {
 model Order {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   cartItemId String   @db.ObjectId
-  quantity   Int
   orderTime  DateTime @default(now())
 
   @@map("orders")
